@@ -10,7 +10,7 @@ spring:
           introspection-client-id: oidc-client
           introspection-client-secret: oidc
   datasource:
-    url: jdbc:postgresql://localhost:5432/test
+    url: jdbc:postgresql://localhost:5432/pintailer
     username: postgres
     password: postgres
   jpa:
