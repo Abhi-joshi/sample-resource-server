@@ -1,24 +1,32 @@
 package com.abhishek.sampleresourceserver.service.impl;
 
 import com.abhishek.sampleresourceserver.client.UserInfo;
+import com.abhishek.sampleresourceserver.exception.ProblemFieldException;
 import com.abhishek.sampleresourceserver.modal.EndUser;
 import com.abhishek.sampleresourceserver.modal.EndUserRole;
 import com.abhishek.sampleresourceserver.repository.EndUserRepository;
+import com.abhishek.sampleresourceserver.repository.EndUserRoleRepository;
 import com.abhishek.sampleresourceserver.service.EndUserService;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
 public class EndUserServiceImpl implements EndUserService {
 
     private final EndUserRepository endUserRepository;
+    private final EndUserRoleRepository endUserRoleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public EndUserServiceImpl(EndUserRepository endUserRepository, PasswordEncoder passwordEncoder) {
+    public EndUserServiceImpl(EndUserRepository endUserRepository, EndUserRoleRepository endUserRoleRepository,  PasswordEncoder passwordEncoder) {
         this.endUserRepository = endUserRepository;
+        this.endUserRoleRepository = endUserRoleRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -40,5 +48,24 @@ public class EndUserServiceImpl implements EndUserService {
         endUser.setRoles(endUserRoles);
         this.endUserRepository.save(endUser);
         return new UserInfo(userInfo.getUsername());
+    }
+
+    @Override
+    public UserInfo details(OAuth2AuthenticatedPrincipal principal, String username) {
+        EndUser endUser = this.endUserRepository.findEndUserByUsername(principal.getName());
+        List<EndUserRole> endUserRoles = this.endUserRoleRepository.findEndUserRoleByEndUser(endUser);
+        if(!username.equalsIgnoreCase(endUser.getUsername())){
+         throw new ProblemFieldException("logged-in username is different than supplied username.");
+        }
+        UserInfo userInfo = new UserInfo();
+        userInfo.setUsername(endUser.getUsername());
+        userInfo.setEmail(endUser.getEmail());
+        userInfo.setEnabled(endUser.getEnabled());
+        Set<String> roles = new HashSet<>();
+        for(EndUserRole endUserRole : endUserRoles){
+            roles.add(endUserRole.getRole());
+        }
+        userInfo.setRoles(new HashSet<>(roles));
+        return userInfo;
     }
 }
