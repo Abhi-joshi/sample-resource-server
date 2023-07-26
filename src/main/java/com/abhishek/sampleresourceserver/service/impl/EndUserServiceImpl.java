@@ -1,14 +1,11 @@
 package com.abhishek.sampleresourceserver.service.impl;
 
 import com.abhishek.sampleresourceserver.client.UserInfo;
-import com.abhishek.sampleresourceserver.exception.ProblemFieldException;
 import com.abhishek.sampleresourceserver.modal.EndUser;
 import com.abhishek.sampleresourceserver.modal.EndUserRole;
 import com.abhishek.sampleresourceserver.repository.EndUserRepository;
 import com.abhishek.sampleresourceserver.repository.EndUserRoleRepository;
 import com.abhishek.sampleresourceserver.service.EndUserService;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.stereotype.Service;
@@ -51,12 +48,9 @@ public class EndUserServiceImpl implements EndUserService {
     }
 
     @Override
-    public UserInfo details(OAuth2AuthenticatedPrincipal principal, String username) {
+    public UserInfo details(OAuth2AuthenticatedPrincipal principal) {
         EndUser endUser = this.endUserRepository.findEndUserByUsername(principal.getName());
         List<EndUserRole> endUserRoles = this.endUserRoleRepository.findEndUserRoleByEndUser(endUser);
-        if(!username.equalsIgnoreCase(endUser.getUsername())){
-         throw new ProblemFieldException("logged-in username is different than supplied username.");
-        }
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(endUser.getUsername());
         userInfo.setEmail(endUser.getEmail());

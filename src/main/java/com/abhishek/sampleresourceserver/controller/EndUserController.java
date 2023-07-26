@@ -14,9 +14,9 @@ public class EndUserController {
         this.endUserService = endUserService;
     }
 
-    @GetMapping("/details/{username}")
-    public UserInfo details(@AuthenticationPrincipal OAuth2AuthenticatedPrincipal principal , @PathVariable String username){
-        return this.endUserService.details(principal, username);
+    @GetMapping("/details")
+    public UserInfo details(@AuthenticationPrincipal OAuth2AuthenticatedPrincipal principal){
+        return this.endUserService.details(principal);
     }
 
     @PostMapping("/register")
