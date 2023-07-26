@@ -6,7 +6,7 @@ public class UserInfo {
     private String username;
     private String password;
     private String email;
-    private boolean enabled;
+    private Boolean enabled;
     private Set<String> roles;
 
 
@@ -41,11 +41,11 @@ public class UserInfo {
         this.email = email;
     }
 
-    public boolean getEnabled() {
+    public Boolean getEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
     }
 

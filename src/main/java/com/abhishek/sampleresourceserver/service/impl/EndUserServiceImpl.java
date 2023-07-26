@@ -33,7 +33,7 @@ public class EndUserServiceImpl implements EndUserService {
         endUser.setUsername(userInfo.getUsername());
         endUser.setPassword(passwordEncoder.encode(userInfo.getPassword()));
         endUser.setEmail(userInfo.getEmail());
-        endUser.setEnabled(userInfo.getEnabled());
+        endUser.setEnabled(false);
         Set<EndUserRole> endUserRoles = new HashSet<>();
         for(String endUserRole : userInfo.getRoles()){
             EndUserRole userRole = new EndUserRole();
