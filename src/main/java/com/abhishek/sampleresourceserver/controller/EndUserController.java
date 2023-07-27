@@ -5,6 +5,7 @@ import com.abhishek.sampleresourceserver.service.EndUserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/enduser")
@@ -15,12 +16,12 @@ public class EndUserController {
     }
 
     @GetMapping("/details")
-    public UserInfo details(@AuthenticationPrincipal OAuth2AuthenticatedPrincipal principal){
+    public Mono<UserInfo> details(@AuthenticationPrincipal OAuth2AuthenticatedPrincipal principal){
         return this.endUserService.details(principal);
     }
 
     @PostMapping("/register")
-    public UserInfo register(@RequestBody UserInfo userInfo){
+    public Mono<UserInfo> register(@RequestBody UserInfo userInfo){
         return this.endUserService.register(userInfo);
     }
 }

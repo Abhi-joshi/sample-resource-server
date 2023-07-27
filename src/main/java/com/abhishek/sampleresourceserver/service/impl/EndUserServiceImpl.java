@@ -9,10 +9,11 @@ import com.abhishek.sampleresourceserver.service.EndUserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class EndUserServiceImpl implements EndUserService {
@@ -21,45 +22,55 @@ public class EndUserServiceImpl implements EndUserService {
     private final EndUserRoleRepository endUserRoleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public EndUserServiceImpl(EndUserRepository endUserRepository, EndUserRoleRepository endUserRoleRepository,  PasswordEncoder passwordEncoder) {
+    public EndUserServiceImpl(EndUserRepository endUserRepository, EndUserRoleRepository endUserRoleRepository, PasswordEncoder passwordEncoder) {
         this.endUserRepository = endUserRepository;
         this.endUserRoleRepository = endUserRoleRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
+    public Mono<UserInfo> details(OAuth2AuthenticatedPrincipal principal) {
+        return this.endUserRepository.findEndUserByUsername(principal.getName())
+                .flatMap(endUser -> {
+                    Flux<EndUserRole> endUserRoles = this.endUserRoleRepository.findEndUserRoleByEndUserId(endUser.getEndUserId());
+                    return endUserRoles.collectList()
+                            .map(roles -> {
+                                UserInfo userInfo = new UserInfo();
+                                userInfo.setUsername(endUser.getUsername());
+                                userInfo.setEmail(endUser.getEmail());
+                                userInfo.setEnabled(endUser.getEnabled());
+                                Set<String> roleSet = roles.stream()
+                                        .map(EndUserRole::getRole)
+                                        .collect(Collectors.toSet());
+                                userInfo.setRoles(roleSet);
+                                return userInfo;
+                            });
+                });
+    }
+
     @Override
-    public UserInfo register(UserInfo userInfo) {
+    public Mono<UserInfo> register(UserInfo userInfo) {
         EndUser endUser = new EndUser();
         endUser.setUsername(userInfo.getUsername());
         endUser.setPassword(passwordEncoder.encode(userInfo.getPassword()));
         endUser.setEmail(userInfo.getEmail());
         endUser.setEnabled(false);
-        Set<EndUserRole> endUserRoles = new HashSet<>();
-        for(String endUserRole : userInfo.getRoles()){
-            EndUserRole userRole = new EndUserRole();
-            userRole.setRole(endUserRole);
-            userRole.setUsername(userInfo.getUsername());
-            userRole.setEndUser(endUser);
-            endUserRoles.add(userRole);
-        }
-        endUser.setRoles(endUserRoles);
-        this.endUserRepository.save(endUser);
-        return new UserInfo(userInfo.getUsername());
-    }
 
-    @Override
-    public UserInfo details(OAuth2AuthenticatedPrincipal principal) {
-        EndUser endUser = this.endUserRepository.findEndUserByUsername(principal.getName());
-        List<EndUserRole> endUserRoles = this.endUserRoleRepository.findEndUserRoleByEndUser(endUser);
-        UserInfo userInfo = new UserInfo();
-        userInfo.setUsername(endUser.getUsername());
-        userInfo.setEmail(endUser.getEmail());
-        userInfo.setEnabled(endUser.getEnabled());
-        Set<String> roles = new HashSet<>();
-        for(EndUserRole endUserRole : endUserRoles){
-            roles.add(endUserRole.getRole());
-        }
-        userInfo.setRoles(new HashSet<>(roles));
-        return userInfo;
+        Mono<EndUser> savedEndUser = this.endUserRepository.save(endUser);
+
+        Flux<EndUserRole> savedEndUserRoles = Flux.fromIterable(userInfo.getRoles())
+                .flatMap(role -> {
+                    EndUserRole userRole = new EndUserRole();
+                    userRole.setRole(role);
+                    userRole.setUsername(userInfo.getUsername());
+
+                    return savedEndUser.map(savedUser -> {
+                        userRole.setEndUserId(savedUser.getEndUserId());
+                        return userRole;
+                    });
+                })
+                .collectList()
+                .flatMapMany(this.endUserRoleRepository::saveAll);
+
+        return savedEndUserRoles.then(Mono.just(new UserInfo(userInfo.getUsername())));
     }
 }

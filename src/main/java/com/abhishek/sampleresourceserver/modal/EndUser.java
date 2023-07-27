@@ -1,34 +1,29 @@
 package com.abhishek.sampleresourceserver.modal;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.Set;
 
-@Entity
-@Table(name = "enduser")
+@Table("enduser")
 public class EndUser {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @SequenceGenerator(name = "enduser_seq", allocationSize = 1)
-    @Column(name = "enduser_id")
+    @Column("enduser_id")
     private long endUserId;
 
-    @Column(name = "username")
+    @Column("username")
     private String username;
 
-    @Column(name = "password")
+    @Column("password")
     private String password;
 
-    @Column(name = "email")
+    @Column("email")
     private String email;
 
-    @Column(name = "enabled")
+    @Column("enabled")
     private Boolean enabled;
-
-    @OneToMany(mappedBy = "endUser", fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL)
-    private Set<EndUserRole> roles;
 
     public long getEndUserId() {
         return endUserId;
@@ -68,13 +63,5 @@ public class EndUser {
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
-    }
-
-    public Set<EndUserRole> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<EndUserRole> roles) {
-        this.roles = roles;
     }
 }

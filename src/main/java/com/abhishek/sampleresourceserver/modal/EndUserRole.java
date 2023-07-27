@@ -1,25 +1,24 @@
 package com.abhishek.sampleresourceserver.modal;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
-@Entity
-@Table(name = "enduser_role")
+@Table("enduser_role")
 public class EndUserRole {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "enduser_role_id")
+    @Column("enduser_role_id")
     private long endUserRoleId;
 
-    @Column(name = "username")
+    @Column("username")
     private String username;
 
-    @Column(name = "role")
+    @Column("role")
     private String role;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "enduser_id", nullable = false)
-    private EndUser endUser;
+    @Column("enduser_id")
+    private long endUserId;
 
     public long getEndUserRoleId() {
         return endUserRoleId;
@@ -45,11 +44,11 @@ public class EndUserRole {
         this.role = role;
     }
 
-    public EndUser getEndUser() {
-        return endUser;
+    public long getEndUserId() {
+        return endUserId;
     }
 
-    public void setEndUser(EndUser endUser) {
-        this.endUser = endUser;
+    public void setEndUserId(long endUserId) {
+        this.endUserId = endUserId;
     }
 }

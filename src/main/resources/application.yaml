@@ -9,8 +9,8 @@ spring:
           introspection-uri: http://localhost:9000/oauth2/introspect
           introspection-client-id: oidc-client
           introspection-client-secret: oidc
-  datasource:
-    url: jdbc:postgresql://localhost:5432/pintailer
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/pintailer
     username: postgres
     password: postgres
   jpa:
